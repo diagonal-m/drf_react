@@ -31,7 +31,13 @@ const DrfApiFetch = () => {
         'Authorization': 'Token b9be0cb85a1ab69fda8014aad6c1fa1e6a0f2962'
       }
     })
-    .then(res => {setTasks(tasks.filter(task => task.id !== id)); setSelectedTask([])})
+    .then(res => {
+      setTasks(tasks.filter(task => task.id !== id)); 
+      setSelectedTask([]);
+      if (editedTask.id === id) {　　　　　　　　　　　/*ここから3行追加*/
+        setEditedTask({ id: "", title: "" });
+      }
+    })
   }
 
   const newTask = (task) => {
@@ -44,7 +50,21 @@ const DrfApiFetch = () => {
         'Authorization': 'Token b9be0cb85a1ab69fda8014aad6c1fa1e6a0f2962'
       }
     })
-    .then(res => setTasks([...tasks, res.data]))
+    .then(res => {setTasks([...tasks, res.data]); setEditedTask({id: '', title: ''})})
+  }
+
+  const editTask = (task) => {
+
+    axios.put(`http://localhost:8000/api/tasks/${task.id}/`, task, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Token b9be0cb85a1ab69fda8014aad6c1fa1e6a0f2962'
+      }
+    })
+    .then(
+      res => {setTasks(tasks.map(task =>  (task.id === editedTask.id ? res.data : task)));
+        setEditedTask({id: '', title: ''})
+      })
   }
 
   const handleInputChange = () => evt => {
@@ -62,6 +82,10 @@ const DrfApiFetch = () => {
             <i className="fas fa-trash-alt"></i>
           </button>
 
+          <button onClick={()=>setEditedTask(task)}>
+            <i className="fas fa-pen"></i>
+          </button>
+
           </li>)
         }
       </ul>
@@ -74,7 +98,10 @@ const DrfApiFetch = () => {
       <h3>{selectedTask.title} {selectedTask.id}</h3>
 
       <input type="text" name="title" value={editedTask.title} onChange={handleInputChange()} placeholder="New task?" required/>
-      <button onClick={()=>newTask(editedTask)}>Create</button>
+      { editedTask.id ?
+      <button onClick={()=>editTask(editedTask)}>Update</button> :
+      <button onClick={()=>newTask(editedTask)}>Create</button> 
+    }
     </div>
   )
 }
